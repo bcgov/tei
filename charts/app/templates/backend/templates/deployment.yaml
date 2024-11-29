@@ -39,7 +39,7 @@ spec:
             - name: FLYWAY_BASELINE_ON_MIGRATE
               value: "true"
             - name: FLYWAY_DEFAULT_SCHEMA
-              value: "USERS"
+              value: "codes"
             - name: FLYWAY_CONNECT_RETRIES
               value: "10"
           resources:
@@ -63,6 +63,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: info
+            - name: DB_SCHEMA
+              value: codes
           ports:
             - name: http
               containerPort: {{ .Values.backend.service.targetPort }}
