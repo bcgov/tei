@@ -1,0 +1,260 @@
+﻿@page "/"
+@inject ILogger<ClassificationPage> Logger
+@inject IClassificationApi ClassificationApi
+@using TEI.Codes.Client.Api
+@using TEI.Codes.Data
+@inherits ComponentBase
+
+<PageTitle>Classification</PageTitle>
+
+<h1>Classification</h1>
+
+@if (Loading)
+{
+    <p>
+        <span class="spinner-border spinner-border-sm"
+              role="status"></span>
+        <em>Loading... </em>
+    </p>
+}
+else if (FilterResponse?.ResultCount != null)
+{
+    <p>@FilterResponse.ResultCount matching record@(FilterResponse.ResultCount == 1 ? "" : "s").</p>
+}
+else
+{
+    <p class="text-danger">
+        Unable to retrieve data.
+        <a href=""
+           @onclick="@RetrieveInitialFilterResponseAsync"
+           @onclick:preventDefault>Retry</a>
+    </p>
+}
+
+<div class="row gy-3">
+    <div class="col-12 col-xl-6 d-grid gap-2 align-content-start">
+        <h4>Filters</h4>
+        <button type="button"
+                @onclick="ClearAllFilters"
+                class="btn btn-secondary btn-sm"
+                disabled="@(FiltersAreEmpty || Loading)">
+            Clear All Filters
+        </button>
+        @foreach (SelectField field in SelectFields)
+        {
+            <SelectFieldComponent
+                Field="@field"
+                OnSelectCallback="FilterResultsAsync"
+                Deactivated="@(FilterResponse == null || Loading)" />
+        }
+    </div>
+    <div class="col d-grid gap-2">
+        <h4>Result</h4>
+        @foreach (List<OutputField> group in OutputFieldGroups)
+        {
+            <div class="card">
+                <div class="card-body row gy-2">
+                    @foreach (OutputField field in group)
+                    {
+                        <OutputFieldComponent
+                            Field="@field" />
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+
+    private FilterBcgEcoCodesResponse? filterResponse;
+
+    private FilterBcgEcoCodesResponse? FilterResponse
+    {
+        get => filterResponse;
+
+        set
+        {
+            filterResponse = value;
+            UpdateInputFields(value);
+            UpdateOutputFields(value);
+        }
+    }
+
+    private FilterBcgEcoCodesResponse? InitialFilterResponse { get; set; }
+
+    private bool Loading { get; set; }
+
+    private List<SelectField> SelectFields { get; } =
+    [
+        new("BGC Label", response => response?.BgcCodeValues ?? [], (request, value) => request.BgcCode = value)
+        {
+            Subfields =
+            [
+                new("Zone", response => response?.ZoneCodeValues ?? [], (request, value) => request.ZoneCode = value),
+                new("Subzone", response => response?.SubzoneCodeValues ?? [], (request, value) => request.SubzoneCode = value),
+                new("Variant", response => response?.VariantCodeValues ?? [], (request, value) => request.VariantCode = value),
+                new("Phase", response => response?.PhaseCodeValues ?? [], (request, value) => request.PhaseCode = value),
+            ],
+        },
+        new("Ecosystem Code", response => response?.EcosystemCodeValues ?? [], (request, value) => request.EcosystemCode = value)
+        {
+            Subfields =
+            [
+                new("Map Code", response => response?.MapCodeValues ?? [], (request, value) => request.MapCode = value),
+                new("Site Series", response => response?.SiteSeriesCodeValues ?? [], (request, value) => request.SiteSeriesCode = value),
+                new("SS Phase", response => response?.SsPhaseCodeValues ?? [], (request, value) => request.SsPhaseCode = value),
+                new("Seral", response => response?.SeralCodeValues ?? [], (request, value) => request.SeralCode = value),
+                new("Variation", response => response?.VariationCodeValues ?? [], (request, value) => request.VariationCode = value),
+            ],
+        },
+        new("nBEC Code", response => response?.NbecCodeValues ?? [], (request, value) => request.NbecCode = value),
+        new("Site Component Code", response => response?.SiteComponentCodeValues ?? [], (request, value) => request.SiteComponentCode = value)
+        {
+            Subfields =
+            [
+                new("Realm", response => response?.RealmCodeValues ?? [], (request, value) => request.RealmCode = value),
+                new("Group", response => response?.GroupCodeValues ?? [], (request, value) => request.GroupCode = value),
+                new("Class", response => response?.ClassCodeValues ?? [], (request, value) => request.ClassCode = value),
+                new("Association", response => response?.AssociationCodeValues ?? [], (request, value) => request.AssociationCode = value),
+                new("Subclass", response => response?.SubclassCodeValues ?? [], (request, value) => request.SubclassCode = value),
+            ],
+        },
+        new("Site Series Name", response => response?.SiteSeriesNameValues ?? [], (request, value) => request.SiteSeriesName = value),
+        new SelectFieldBoolean("Forested", response => response?.ForestedValues ?? [], (request, value) => request.Forested = value),
+        new("Ecosystem Type", response => response?.EcosystemTypeValues ?? [], (request, value) => request.EcosystemType = value),
+        new("Ecosystem Subtype", response => response?.EcosystemSubtypeValues ?? [], (request, value) => request.EcosystemSubtype = value),
+        new("Kind", response => response?.KindTypeValues ?? [], (request, value) => request.KindType = value),
+        new("Source", response => response?.SourceValues ?? [], (request, value) => request.Source = value),
+        new SelectFieldBoolean("Approved", response => response?.ApprovedValues ?? [], (request, value) => request.Approved = value),
+    ];
+
+    private List<List<OutputField>> OutputFieldGroups { get; } =
+    [
+        [
+            new("BGC Label", code => code?.BgcCode)
+            {
+                Size = OutputFieldSize.Large,
+                Subfields =
+                [
+                    new("Zone", code => code?.ZoneCode),
+                    new("Subzone", code => code?.SubzoneCode),
+                    new("Variant", code => code?.VariantCode),
+                    new("Phase", code => code?.PhaseCode),
+                ],
+            },
+        ],
+        [
+            new("Ecosystem Code", code => code?.EcosystemCode)
+            {
+                Size = OutputFieldSize.Large,
+                Subfields =
+                [
+                    new("Map Code", code => code?.MapCode),
+                    new("Site Series", code => code?.SiteSeriesCode),
+                    new("SS Phase", code => code?.SsPhaseCode),
+                    new("Seral", code => code?.SeralCode),
+                    new("Variation", code => code?.VariationCode),
+                ],
+            },
+        ],
+        [
+            new("nBEC Code", code => code?.NbecCode),
+            new("Site Component Code", code => code?.SiteComponentCode)
+            {
+                Subfields =
+                [
+                    new("Realm", code => code?.RealmCode),
+                    new("Group", code => code?.GroupCode),
+                    new("Class", code => code?.ClassCode),
+                    new("Association", code => code?.AssociationCode),
+                    new("Subclass", code => code?.SubclassCode),
+                ],
+            },
+        ],
+        [
+            new("Site Series Name", code => code?.SiteSeriesName) { Size = OutputFieldSize.Large },
+            new("Forested", code => code?.Forested.ToString()) { Size = OutputFieldSize.Small },
+            new("Ecosystem Type", code => code?.EcosystemType) { Size = OutputFieldSize.Small },
+            new("Ecosystem Subtype", code => code?.EcosystemSubtype) { Size = OutputFieldSize.Small },
+            new("Kind Type", code => code?.KindType) { Size = OutputFieldSize.Small },
+            new("Source", code => code?.Source) { Size = OutputFieldSize.Small, StartNewRow = true },
+            new("Date Added", code => code?.DateAdded.ToString("yyyy-MM-dd")) { Size = OutputFieldSize.Small },
+            new("Approved", code => code?.Approved.ToString()) { Size = OutputFieldSize.Small },
+        ],
+    ];
+
+    private bool FiltersAreEmpty => SelectFields.All(x => x.IsEmpty);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RetrieveInitialFilterResponseAsync();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task RetrieveInitialFilterResponseAsync()
+    {
+        await FilterResultsAsync();
+        InitialFilterResponse = FilterResponse;
+    }
+
+    private async Task FilterResultsAsync()
+    {
+        if (InitialFilterResponse != null && FiltersAreEmpty)
+        {
+            FilterResponse = InitialFilterResponse;
+        }
+        else
+        {
+            FilterBcgEcoCodesRequest request = new();
+            foreach (SelectField field in SelectFields)
+            {
+                field.PopulateRequest(request, Logger);
+            }
+
+            await GetFilterResponseAsync(request);
+        }
+    }
+
+    private async Task GetFilterResponseAsync(FilterBcgEcoCodesRequest request)
+    {
+        try
+        {
+            Loading = true;
+            FilterResponse = await ClassificationApi.FilterBgcEcoCodes(request);
+        }
+        finally
+        {
+            Loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateInputFields(FilterBcgEcoCodesResponse? response)
+    {
+        foreach (SelectField field in SelectFields)
+        {
+            field.UpdateFilteredValues(response, Logger);
+        }
+    }
+
+    private void UpdateOutputFields(FilterBcgEcoCodesResponse? response)
+    {
+        foreach (OutputField field in OutputFieldGroups.SelectMany(group => group))
+        {
+            field.SetValues(response?.UniqueResult);
+        }
+    }
+
+    private void ClearAllFilters()
+    {
+        Logger.LogInformation("Clearing all filters");
+        foreach (SelectField field in SelectFields)
+        {
+            field.ClearSelectedValues(Logger);
+        }
+
+        FilterResponse = InitialFilterResponse;
+    }
+
+}
