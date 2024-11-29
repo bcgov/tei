@@ -53,6 +53,7 @@ jobs:
     with:
       environment: test
       db_user: app
+      tag: ${{ needs.vars.outputs.pr }}
 
   deploy-prod:
     name: Deploy (prod)
@@ -64,6 +65,7 @@ jobs:
     with:
       environment: prod
       db_user: app
+      tag: ${{ needs.vars.outputs.pr }}
       params:
         --set backend.deploymentStrategy=RollingUpdate
         --set frontend.deploymentStrategy=RollingUpdate
