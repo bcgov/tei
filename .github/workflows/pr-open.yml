@@ -13,18 +13,24 @@ jobs:
   builds:
     name: Builds
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        package: [backend, frontend, migrations]
     timeout-minutes: 10
     steps:
       - uses: bcgov-nr/action-builder-ghcr@v2.3.0
         with:
           keep_versions: 50
-          package: ${{ matrix.package }}
+          package: migrations
           tag: ${{ github.event.number }}
           tag_fallback: latest
-          triggers: ('${{ matrix.package }}/')
+          triggers: ('migrations/')
+      - uses: bcgov-nr/action-builder-ghcr@v2.3.0
+        with:
+          keep_versions: 50
+          package: backend
+          build_context: apps
+          build_file: apps/Codes/Codes.Server/Dockerfile
+          tag: ${{ github.event.number }}
+          tag_fallback: latest
+          triggers: ('apps/')
 
   # https://github.com/bcgov/quickstart-openshift-helpers
   deploys:
@@ -35,17 +41,9 @@ jobs:
       oc_namespace: ${{ secrets.OC_NAMESPACE }}
       oc_token: ${{ secrets.OC_TOKEN }}
     with:
-      triggers: ('backend/' 'frontend/' 'migrations/' 'charts/')
+      triggers: ('apps/' 'migrations/' 'charts/')
       db_user: app-${{github.event.number}}
       params: --set global.secrets.persist=false
-
-  # tests:
-  #   name: Tests
-  #   if: needs.deploys.outputs.triggered == 'true'
-  #   needs: [deploys]
-  #   uses: ./.github/workflows/.tests.yml
-  #   with:
-  #     target: ${{ github.event.number }}
 
   results:
     name: PR Results

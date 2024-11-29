@@ -18,9 +18,9 @@ spec:
     metadata:
       annotations:
         rollme: {{ randAlphaNum 5 | quote }}
-        prometheus.io/scrape: 'true'
-        prometheus.io/port: '3000'
-        prometheus.io/path: '/api/metrics'
+        # prometheus.io/scrape: 'true'
+        # prometheus.io/port: '3000'
+        # prometheus.io/path: '/api/metrics'
       labels:
         {{- include "backend.labels" . | nindent 8 }}
     spec:
@@ -67,12 +67,12 @@ spec:
               value: codes
           ports:
             - name: http
-              containerPort: {{ .Values.backend.service.targetPort }}
+              containerPort: 8080
               protocol: TCP
           readinessProbe:
             httpGet:
-              path: /api/health
-              port: http
+              path: /health
+              port: 8080
               scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 2
@@ -83,8 +83,8 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             httpGet:
-              path: /api/health
-              port: 3000
+              path: /health
+              port: 8080
               scheme: HTTP
             initialDelaySeconds: 15
             periodSeconds: 30
