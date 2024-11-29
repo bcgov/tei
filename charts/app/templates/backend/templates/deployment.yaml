@@ -63,6 +63,8 @@ spec:
           env:
             - name: LOG_LEVEL
               value: info
+            - name: DB_SCHEMA
+              value: codes
           ports:
             - name: http
               containerPort: {{ .Values.backend.service.targetPort }}
