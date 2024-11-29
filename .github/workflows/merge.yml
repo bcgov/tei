@@ -56,38 +56,38 @@ jobs:
       db_user: app
       tag: ${{ needs.vars.outputs.pr }}
 
-  deploy-prod:
-    name: Deploy (prod)
-    needs: [deploy-test, vars]
-    uses: ./.github/workflows/.deployer.yml
-    secrets:
-      oc_namespace: ${{ secrets.OC_NAMESPACE }}
-      oc_token: ${{ secrets.OC_TOKEN }}
-    with:
-      environment: prod
-      db_user: app
-      tag: ${{ needs.vars.outputs.pr }}
-      params:
-        --set backend.deploymentStrategy=RollingUpdate
-        --set frontend.deploymentStrategy=RollingUpdate
-        --set global.autoscaling=true
-        --set frontend.pdb.enabled=true
-        --set backend.pdb.enabled=true
+  # deploy-prod:
+  #   name: Deploy (prod)
+  #   needs: [deploy-test, vars]
+  #   uses: ./.github/workflows/.deployer.yml
+  #   secrets:
+  #     oc_namespace: ${{ secrets.OC_NAMESPACE }}
+  #     oc_token: ${{ secrets.OC_TOKEN }}
+  #   with:
+  #     environment: prod
+  #     db_user: app
+  #     tag: ${{ needs.vars.outputs.pr }}
+  #     params:
+  #       --set backend.deploymentStrategy=RollingUpdate
+  #       --set frontend.deploymentStrategy=RollingUpdate
+  #       --set global.autoscaling=true
+  #       --set frontend.pdb.enabled=true
+  #       --set backend.pdb.enabled=true
 
-  promote:
-    name: Promote Images
-    needs: [deploy-prod, vars]
-    runs-on: ubuntu-24.04
-    permissions:
-      packages: write
-    strategy:
-      matrix:
-        package: [migrations, backend, frontend]
-    timeout-minutes: 1
-    steps:
-      - uses: shrink/actions-docker-registry-tag@v4
-        with:
-          registry: ghcr.io
-          repository: ${{ github.repository }}/${{ matrix.package }}
-          target: ${{ needs.vars.outputs.pr }}
-          tags: prod
+  # promote:
+  #   name: Promote Images
+  #   needs: [deploy-prod, vars]
+  #   runs-on: ubuntu-24.04
+  #   permissions:
+  #     packages: write
+  #   strategy:
+  #     matrix:
+  #       package: [migrations, backend, frontend]
+  #   timeout-minutes: 1
+  #   steps:
+  #     - uses: shrink/actions-docker-registry-tag@v4
+  #       with:
+  #         registry: ghcr.io
+  #         repository: ${{ github.repository }}/${{ matrix.package }}
+  #         target: ${{ needs.vars.outputs.pr }}
+  #         tags: prod
