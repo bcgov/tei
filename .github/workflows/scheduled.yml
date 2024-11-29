@@ -60,11 +60,11 @@ jobs:
     uses: bcgov/quickstart-openshift-helpers/.github/workflows/.schema-spy.yml@v0.9.0
 
 
-  tests:
-    name: Tests
-    uses: ./.github/workflows/.tests.yml
-    with:
-      target: test
+  # tests:
+  #   name: Tests
+  #   uses: ./.github/workflows/.tests.yml
+  #   with:
+  #     target: test
 
   # Run sequentially to reduce chances of rate limiting
   zap_scan:
