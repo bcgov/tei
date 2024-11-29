@@ -1,0 +1,68 @@
+﻿@inherits LayoutComponentBase
+@implements IAsyncDisposable
+@inject IJSRuntime JsRuntime
+
+<NavMenu />
+<main>
+    <article class="content container-md px-3 px-md-4">
+        @Body
+    </article>
+</main>
+
+<div id="blazor-error-ui"
+     class="bg-warning-subtle"
+     data-nosnippet>
+    An unhandled error has occurred.
+    <a href="."
+       class="link-body-emphasis">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+
+    private const string BootstrapThemeLight = "light";
+    private const string BootstrapThemeDark = "dark";
+
+    private IJSObjectReference? jsModule;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/MainLayout.razor.js");
+
+            string theme = await GetPreferredBootstrapThemeAsync();
+            await SetBootstrapThemeAsync(theme);
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (jsModule != null)
+        {
+            await jsModule.DisposeAsync();
+        }
+    }
+
+    private async Task<string> GetPreferredBootstrapThemeAsync()
+    {
+        bool preferDark = false;
+        if (jsModule is not null)
+        {
+            preferDark = await jsModule.InvokeAsync<bool>("matchMedia", "(prefers-color-scheme: dark)");
+        }
+
+        return preferDark ? BootstrapThemeDark : BootstrapThemeLight;
+    }
+
+    private async Task SetBootstrapThemeAsync(string theme)
+    {
+        if (jsModule is not null)
+        {
+            await jsModule.InvokeVoidAsync("setBootstrapTheme", theme);
+        }
+    }
+
+}

@@ -1,0 +1,58 @@
+﻿@inherits ComponentBase
+
+@if (Field.StartNewRow)
+{
+    <div class="w-100 m-0"></div>
+}
+<div class="col col-@XsColSize col-sm-@SmColSize ">
+    <div class="form-floating">
+        <input class="form-control-plaintext"
+               id="@Field.InputId"
+               readonly
+               value="@(Field.Value ?? "-")">
+        <label for="@Field.InputId">@Field.Label</label>
+    </div>
+</div>
+@if (Field.Subfields.Any())
+{
+    <div class="col col-12">
+        <div class="row g-2">
+            @foreach (OutputField? subfield in Field.Subfields)
+            {
+                <div class="col-4 col-md">
+                    <div class="form-floating">
+                        <input class="form-control-plaintext"
+                               id="@subfield.InputId"
+                               readonly
+                               value="@(subfield.Value ?? "-")">
+                        <label for="@subfield.InputId">@subfield.Label</label>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public required OutputField Field { get; set; }
+
+    private int XsColSize =>
+        Field.Size switch
+        {
+            OutputFieldSize.Small or OutputFieldSize.Medium => 6,
+            OutputFieldSize.Large => 12,
+            _ => 6,
+        };
+
+    private int SmColSize =>
+        Field.Size switch
+        {
+            OutputFieldSize.Small => 4,
+            OutputFieldSize.Medium => 6,
+            OutputFieldSize.Large => 12,
+            _ => 6,
+        };
+
+}

@@ -9,10 +9,13 @@ metadata:
 spec:
   type: {{ .Values.backend.service.type }}
   ports:
-    - port: {{ .Values.backend.service.port }}
-      targetPort: http
+    - name: http
+      #-- the port for the service. the service will be accessible on this port within the namespace.
+      port: 80
+      #-- the container port where the application is listening on
+      targetPort: 8080
+      #-- the protocol for the port. it can be TCP or UDP. TCP is the default and is recommended.
       protocol: TCP
-      name: http
   selector:
     {{- include "backend.selectorLabels" . | nindent 4 }}
 {{- end }}

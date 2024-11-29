@@ -1,0 +1,9 @@
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>13.0</LangVersion>
+        <UserSecretsId>222364e6-a89a-4207-8937-5c05d8c267b5</UserSecretsId>
+    </PropertyGroup>
+</Project>

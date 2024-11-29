@@ -1,0 +1,15 @@
+[*.{cs,razor,cshtml}]
+
+# CA1506: Avoid excessive class coupling
+dotnet_diagnostic.ca1506.severity = none
+
+# CA2227: Collection properties should be read only
+dotnet_diagnostic.ca2227.severity = none
+
+# ReSharper properties
+resharper_comment_typo_highlighting = none
+resharper_identifier_typo_highlighting = none
+resharper_string_literal_typo_highlighting = none
+
+[Context/TeiDbContext.cs]
+generated_code = true
