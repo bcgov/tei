@@ -26,7 +26,7 @@ else
     <p class="text-danger">
         Unable to retrieve data.
         <a href=""
-           @onclick="@RetrieveInitialFilterResponseAsync"
+           @onclick="@FilterResultsAsync"
            @onclick:preventDefault>Retry</a>
     </p>
 }
@@ -34,12 +34,31 @@ else
 <div class="row gy-3">
     <div class="col-12 col-xl-6 d-grid gap-2 align-content-start">
         <h4>Filters</h4>
-        <button type="button"
-                @onclick="ClearAllFilters"
-                class="btn btn-secondary btn-sm"
-                disabled="@(FiltersAreEmpty || Loading)">
-            Clear All Filters
-        </button>
+        <div class="d-flex gap-2">
+            <button type="button"
+                    @onclick="ClearAllFilters"
+                    class="btn btn-secondary btn-sm flex-fill"
+                    disabled="@(FiltersAreEmpty || Loading)">
+                <img src="/lib/bootstrap/icons/x-circle.svg"
+                     alt=""
+                     aria-hidden="true"
+                     width="16"
+                     height="16" />
+                Reset
+            </button>
+            <button type="button"
+                    @onclick="RestorePreviousFilter"
+                    class="btn btn-secondary btn-sm flex-fill"
+                    disabled="@FiltersAreEmpty"
+                    aria-label="Restore previous filter">
+                <img src="/lib/bootstrap/icons/arrow-left.svg"
+                     alt=""
+                     aria-hidden="true"
+                     width="16"
+                     height="16" />
+                Back
+            </button>
+        </div>
         @foreach (SelectField field in SelectFields)
         {
             <SelectFieldComponent
@@ -81,52 +100,52 @@ else
         }
     }
 
-    private FilterBcgEcoCodesResponse? InitialFilterResponse { get; set; }
+    private Stack<FilterBcgEcoCodes> FilterHistory { get; } = new();
 
     private bool Loading { get; set; }
 
     private List<SelectField> SelectFields { get; } =
     [
-        new("BGC Label", response => response?.BgcCodeValues ?? [], (request, value) => request.BgcCode = value)
+        new("BGC Label", response => response?.BgcCodeValues ?? [], (request, value) => request.BgcCode = value, request => request.BgcCode)
         {
             Subfields =
             [
-                new("Zone", response => response?.ZoneCodeValues ?? [], (request, value) => request.ZoneCode = value),
-                new("Subzone", response => response?.SubzoneCodeValues ?? [], (request, value) => request.SubzoneCode = value),
-                new("Variant", response => response?.VariantCodeValues ?? [], (request, value) => request.VariantCode = value),
-                new("Phase", response => response?.PhaseCodeValues ?? [], (request, value) => request.PhaseCode = value),
+                new("Zone", response => response?.ZoneCodeValues ?? [], (request, value) => request.ZoneCode = value, request => request.ZoneCode),
+                new("Subzone", response => response?.SubzoneCodeValues ?? [], (request, value) => request.SubzoneCode = value, request => request.SubzoneCode),
+                new("Variant", response => response?.VariantCodeValues ?? [], (request, value) => request.VariantCode = value, request => request.VariantCode),
+                new("Phase", response => response?.PhaseCodeValues ?? [], (request, value) => request.PhaseCode = value, request => request.PhaseCode),
             ],
         },
-        new("Ecosystem Code", response => response?.EcosystemCodeValues ?? [], (request, value) => request.EcosystemCode = value)
+        new("Ecosystem Code", response => response?.EcosystemCodeValues ?? [], (request, value) => request.EcosystemCode = value, request => request.EcosystemCode)
         {
             Subfields =
             [
-                new("Map Code", response => response?.MapCodeValues ?? [], (request, value) => request.MapCode = value),
-                new("Site Series", response => response?.SiteSeriesCodeValues ?? [], (request, value) => request.SiteSeriesCode = value),
-                new("SS Phase", response => response?.SsPhaseCodeValues ?? [], (request, value) => request.SsPhaseCode = value),
-                new("Seral", response => response?.SeralCodeValues ?? [], (request, value) => request.SeralCode = value),
-                new("Variation", response => response?.VariationCodeValues ?? [], (request, value) => request.VariationCode = value),
+                new("Map Code", response => response?.MapCodeValues ?? [], (request, value) => request.MapCode = value, request => request.MapCode),
+                new("Site Series", response => response?.SiteSeriesCodeValues ?? [], (request, value) => request.SiteSeriesCode = value, request => request.SiteSeriesCode),
+                new("SS Phase", response => response?.SsPhaseCodeValues ?? [], (request, value) => request.SsPhaseCode = value, request => request.SsPhaseCode),
+                new("Seral", response => response?.SeralCodeValues ?? [], (request, value) => request.SeralCode = value, request => request.SeralCode),
+                new("Variation", response => response?.VariationCodeValues ?? [], (request, value) => request.VariationCode = value, request => request.VariationCode),
             ],
         },
-        new("nBEC Code", response => response?.NbecCodeValues ?? [], (request, value) => request.NbecCode = value),
-        new("Site Component Code", response => response?.SiteComponentCodeValues ?? [], (request, value) => request.SiteComponentCode = value)
+        new("nBEC Code", response => response?.NbecCodeValues ?? [], (request, value) => request.NbecCode = value, request => request.NbecCode),
+        new("Site Component Code", response => response?.SiteComponentCodeValues ?? [], (request, value) => request.SiteComponentCode = value, request => request.SiteComponentCode)
         {
             Subfields =
             [
-                new("Realm", response => response?.RealmCodeValues ?? [], (request, value) => request.RealmCode = value),
-                new("Group", response => response?.GroupCodeValues ?? [], (request, value) => request.GroupCode = value),
-                new("Class", response => response?.ClassCodeValues ?? [], (request, value) => request.ClassCode = value),
-                new("Association", response => response?.AssociationCodeValues ?? [], (request, value) => request.AssociationCode = value),
-                new("Subclass", response => response?.SubclassCodeValues ?? [], (request, value) => request.SubclassCode = value),
+                new("Realm", response => response?.RealmCodeValues ?? [], (request, value) => request.RealmCode = value, request => request.RealmCode),
+                new("Group", response => response?.GroupCodeValues ?? [], (request, value) => request.GroupCode = value, request => request.GroupCode),
+                new("Class", response => response?.ClassCodeValues ?? [], (request, value) => request.ClassCode = value, request => request.ClassCode),
+                new("Association", response => response?.AssociationCodeValues ?? [], (request, value) => request.AssociationCode = value, request => request.AssociationCode),
+                new("Subclass", response => response?.SubclassCodeValues ?? [], (request, value) => request.SubclassCode = value, request => request.SubclassCode),
             ],
         },
-        new("Site Series Name", response => response?.SiteSeriesNameValues ?? [], (request, value) => request.SiteSeriesName = value),
-        new SelectFieldBoolean("Forested", response => response?.ForestedValues ?? [], (request, value) => request.Forested = value),
-        new("Ecosystem Type", response => response?.EcosystemTypeValues ?? [], (request, value) => request.EcosystemType = value),
-        new("Ecosystem Subtype", response => response?.EcosystemSubtypeValues ?? [], (request, value) => request.EcosystemSubtype = value),
-        new("Kind", response => response?.KindTypeValues ?? [], (request, value) => request.KindType = value),
-        new("Source", response => response?.SourceValues ?? [], (request, value) => request.Source = value),
-        new SelectFieldBoolean("Approved", response => response?.ApprovedValues ?? [], (request, value) => request.Approved = value),
+        new("Site Series Name", response => response?.SiteSeriesNameValues ?? [], (request, value) => request.SiteSeriesName = value, request => request.SiteSeriesName),
+        new SelectFieldBoolean("Forested", response => response?.ForestedValues ?? [], (request, value) => request.Forested = value, request => request.Forested),
+        new("Ecosystem Type", response => response?.EcosystemTypeValues ?? [], (request, value) => request.EcosystemType = value, request => request.EcosystemType),
+        new("Ecosystem Subtype", response => response?.EcosystemSubtypeValues ?? [], (request, value) => request.EcosystemSubtype = value, request => request.EcosystemSubtype),
+        new("Kind", response => response?.KindTypeValues ?? [], (request, value) => request.KindType = value, request => request.KindType),
+        new("Source", response => response?.SourceValues ?? [], (request, value) => request.Source = value, request => request.Source),
+        new SelectFieldBoolean("Approved", response => response?.ApprovedValues ?? [], (request, value) => request.Approved = value, request => request.Approved),
     ];
 
     private List<List<OutputField>> OutputFieldGroups { get; } =
@@ -188,21 +207,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await RetrieveInitialFilterResponseAsync();
-        await base.OnInitializedAsync();
-    }
-
-    private async Task RetrieveInitialFilterResponseAsync()
-    {
         await FilterResultsAsync();
-        InitialFilterResponse = FilterResponse;
+        await base.OnInitializedAsync();
     }
 
     private async Task FilterResultsAsync()
     {
-        if (InitialFilterResponse != null && FiltersAreEmpty)
+        if (FilterHistory.Count > 0 && FiltersAreEmpty)
         {
-            FilterResponse = InitialFilterResponse;
+            FilterResponse = FilterHistory.Last().Response;
         }
         else
         {
@@ -222,6 +235,7 @@ else
         {
             Loading = true;
             FilterResponse = await ClassificationApi.FilterBgcEcoCodes(request);
+            FilterHistory.Push(new() { Request = request, Response = FilterResponse });
         }
         finally
         {
@@ -246,15 +260,41 @@ else
         }
     }
 
+    private void RestoreFilter(FilterBcgEcoCodes filter)
+    {
+        foreach (SelectField field in SelectFields)
+        {
+            field.UpdateSelectedValue(filter.Request, Logger);
+        }
+
+        foreach (SelectField field in SelectFields)
+        {
+            field.UpdateFilteredValues(filter.Response, Logger);
+        }
+
+        FilterResponse = filter.Response;
+    }
+
     private void ClearAllFilters()
     {
         Logger.LogInformation("Clearing all filters");
-        foreach (SelectField field in SelectFields)
-        {
-            field.ClearSelectedValues(Logger);
-        }
 
-        FilterResponse = InitialFilterResponse;
+        FilterBcgEcoCodes initialFilter = FilterHistory.Last();
+        FilterHistory.Clear();
+        RestoreFilter(initialFilter);
+        FilterHistory.Push(initialFilter);
+    }
+
+    private void RestorePreviousFilter()
+    {
+        FilterHistory.Pop();
+        RestoreFilter(FilterHistory.Peek());
+    }
+
+    private record FilterBcgEcoCodes
+    {
+        public required FilterBcgEcoCodesRequest Request { get; init; }
+        public required FilterBcgEcoCodesResponse Response { get; init; }
     }
 
 }

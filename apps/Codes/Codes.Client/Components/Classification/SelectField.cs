@@ -2,13 +2,18 @@
 
 using TEI.Codes.Data;
 
-public class SelectField(string label, Func<FilterBcgEcoCodesResponse?, IList<string>> retrieveOptions, Action<FilterBcgEcoCodesRequest, string?> populateRequest)
+public class SelectField(
+    string label,
+    Func<FilterBcgEcoCodesResponse?, IList<string>> retrieveOptions,
+    Action<FilterBcgEcoCodesRequest, string?> populateRequest,
+    Func<FilterBcgEcoCodesRequest, string?> retrieveParameter)
 {
     public const string UnselectedValue = "[UNSELECTED]";
 
     public string Label { get; } = label;
     private Func<FilterBcgEcoCodesResponse?, IList<string>> RetrieveOptionsFunc { get; } = retrieveOptions;
     private Action<FilterBcgEcoCodesRequest, string?> PopulateRequestAction { get; } = populateRequest;
+    private Func<FilterBcgEcoCodesRequest, string?> RetrieveParameterFunc { get; } = retrieveParameter;
 
     public IList<string> FilteredValues { get; private set; } = [];
     public string SelectedValue { get; private set; } = UnselectedValue;
@@ -24,7 +29,16 @@ public class SelectField(string label, Func<FilterBcgEcoCodesResponse?, IList<st
         this.SelectedValue = value;
     }
 
-    public void UpdateFilteredValues(FilterBcgEcoCodesResponse? response, ILogger logger, bool includeChildren = true)
+    public void UpdateSelectedValue(FilterBcgEcoCodesRequest request, ILogger logger)
+    {
+        this.UpdateSelectedValue(this.RetrieveParameterFunc(request), logger);
+        foreach (SelectField subfield in this.Subfields)
+        {
+            subfield.UpdateSelectedValue(request, logger);
+        }
+    }
+
+    public void UpdateFilteredValues(FilterBcgEcoCodesResponse? response, ILogger logger)
     {
         logger.LogInformation("Updating filtered values for {Field}", this.Label);
         this.FilteredValues = this.RetrieveOptionsFunc(response);
@@ -39,12 +53,9 @@ public class SelectField(string label, Func<FilterBcgEcoCodesResponse?, IList<st
             this.SelectedValue = UnselectedValue;
         }
 
-        if (includeChildren)
+        foreach (SelectField subfield in this.Subfields)
         {
-            foreach (SelectField subfield in this.Subfields)
-            {
-                subfield.UpdateFilteredValues(response, logger);
-            }
+            subfield.UpdateFilteredValues(response, logger);
         }
     }
 
