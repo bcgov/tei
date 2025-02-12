@@ -1,67 +1,52 @@
 ﻿@inherits ComponentBase
 @inject ILogger<SelectFieldComponent> Logger
 
-<div class="d-flex gap-2">
-    <div class="flex-grow-1 d-grid gap-2">
-        <div class="row g-2">
-            <label for="@Field.InputId"
-                   class="col-6 col-form-label col-form-label-sm">@Field.Label</label>
-            <div class="col-6">
-                <select @bind:get="@Field.SelectedValue"
-                        @bind:set="ChangeValueAsync(Field)"
-                        id="@Field.InputId"
-                        class="form-select form-select-sm"
-                        disabled="@(Deactivated || Field.FilteredValues.Count < 2)">
-                    <option value="@SelectField.UnselectedValue"></option>
-                    @foreach (string value in Field.FilteredValues)
-                    {
-                        string label = value == string.Empty ? "-" : value;
-                        <option value="@value"
-                                @key="@value">@label</option>
-                    }
-                </select>
-            </div>
-        </div>
-        @if (Field.Subfields.Any())
-        {
-            <div class="row g-2 justify-content-end">
-                @foreach (SelectField subfield in Field.Subfields)
+<div class="d-grid gap-2">
+    <div class="row g-2">
+        <label for="@Field.InputId"
+               class="col-6 col-form-label col-form-label-sm">@Field.Label</label>
+        <div class="col-6">
+            <select @bind:get="@Field.SelectedValue"
+                    @bind:set="ChangeValueAsync(Field)"
+                    id="@Field.InputId"
+                    class="form-select form-select-sm"
+                    disabled="@(Deactivated || Field.FilteredValues.Count < 2)">
+                <option value="@SelectField.UnselectedValue"></option>
+                @foreach (string value in Field.FilteredValues)
                 {
-                    <div class="col col-6 col-md">
-                        <div class="form-floating">
-                            <select @bind:get="@subfield.SelectedValue"
-                                    @bind:set="ChangeValueAsync(subfield)"
-                                    id="@subfield.InputId"
-                                    class="form-select"
-                                    disabled="@(Deactivated || subfield.FilteredValues.Count < 2)">
-                                <option value="@SelectField.UnselectedValue"></option>
-                                @foreach (string value in subfield.FilteredValues)
-                                {
-                                    string label = value == string.Empty ? "-" : value;
-                                    <option value="@value"
-                                            @key="@value">@label</option>
-                                }
-                            </select>
-                            <label for="@subfield.InputId">@subfield.Label</label>
-                        </div>
-                    </div>
+                    string label = value == string.Empty ? "-" : value;
+                    <option value="@value"
+                            @key="@value">@label</option>
                 }
-            </div>
-        }
+            </select>
+        </div>
     </div>
-    <div class="d-inline-flex align-items-center">
-        <button type="button"
-                @onclick="ClearSelectedValuesAsync"
-                class="btn btn-secondary btn-sm h-100"
-                disabled="@(Deactivated || Field.IsEmpty)"
-                aria-label="@($"Reset {Field.Label} Filter")">
-            <img src="/lib/bootstrap/icons/backspace-fill.svg"
-                 alt=""
-                 aria-hidden="true"
-                 width="16"
-                 height="16" />
-        </button>
-    </div>
+    @if (Field.Subfields.Any())
+    {
+        <div class="row g-2 justify-content-end">
+            @foreach (SelectField subfield in Field.Subfields)
+            {
+                <div class="col col-6 col-md">
+                    <div class="form-floating">
+                        <select @bind:get="@subfield.SelectedValue"
+                                @bind:set="ChangeValueAsync(subfield)"
+                                id="@subfield.InputId"
+                                class="form-select"
+                                disabled="@(Deactivated || subfield.FilteredValues.Count < 2)">
+                            <option value="@SelectField.UnselectedValue"></option>
+                            @foreach (string value in subfield.FilteredValues)
+                            {
+                                string label = value == string.Empty ? "-" : value;
+                                <option value="@value"
+                                        @key="@value">@label</option>
+                            }
+                        </select>
+                        <label for="@subfield.InputId">@subfield.Label</label>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 @code {
