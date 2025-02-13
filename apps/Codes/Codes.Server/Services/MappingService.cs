@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using TEI.Codes.Data;
+using TEI.Common.Server;
 using TEI.Database.Data.Entities;
 using TEI.Database.Server.Access;
 
@@ -16,38 +17,53 @@ public class MappingService(IMapper mapper) : IMappingService
     {
         return new()
         {
-            BgcCodeValues = Filter(source.Select(x => x.BgcCode)),
-            ZoneCodeValues = Filter(source.Select(x => x.BgcCodeNavigation.ZoneCode)),
-            SubzoneCodeValues = Filter(source.Select(x => x.BgcCodeNavigation.SubZoneCode)),
-            VariantCodeValues = Filter(source.Select(x => x.BgcCodeNavigation.VariantCode)),
-            PhaseCodeValues = Filter(source.Select(x => x.BgcCodeNavigation.PhaseCode)),
-            EcosystemCodeValues = Filter(source.Select(x => x.EcoCode)),
-            MapCodeValues = Filter(source.Select(x => x.EcoCodeNavigation.MapCode)),
-            SiteSeriesCodeValues = Filter(source.Select(x => x.EcoCodeNavigation.SiteSeriesCode)),
-            SsPhaseCodeValues = Filter(source.Select(x => x.EcoCodeNavigation.SsPhaseCode)),
-            SeralCodeValues = Filter(source.Select(x => x.EcoCodeNavigation.SeralCode)),
-            VariationCodeValues = Filter(source.Select(x => x.EcoCodeNavigation.VariationCode)),
-            NbecCodeValues = Filter(source.Select(x => x.NbecCode)),
-            SiteComponentCodeValues = Filter(source.Select(x => x.SiteComponentCode)),
-            RealmCodeValues = Filter(source.Select(x => x.SiteComponentCodeNavigation?.RealmCode)),
-            GroupCodeValues = Filter(source.Select(x => x.SiteComponentCodeNavigation?.GroupCode)),
-            ClassCodeValues = Filter(source.Select(x => x.SiteComponentCodeNavigation?.ClassCode)),
-            AssociationCodeValues = Filter(source.Select(x => x.SiteComponentCodeNavigation?.AssociationCode)),
-            SubclassCodeValues = Filter(source.Select(x => x.SiteComponentCodeNavigation?.SubClassCode)),
-            SourceValues = Filter(source.Select(x => x.Source)),
-            EcosystemTypeValues = Filter(source.Select(x => x.EcoSystemType)),
-            EcosystemSubtypeValues = Filter(source.Select(x => x.EcoSystemSubType)),
-            KindTypeValues = Filter(source.Select(x => x.KindType)),
-            SiteSeriesNameValues = Filter(source.Select(x => x.SiteSeriesName)),
+            BgcCodeValues = SortAlphabetically(source.Select(x => x.BgcCode)),
+            ZoneCodeValues = SortAlphabetically(source.Select(x => x.BgcCodeNavigation.ZoneCode)),
+            SubzoneCodeValues = SortAlphabetically(source.Select(x => x.BgcCodeNavigation.SubZoneCode)),
+            VariantCodeValues = SortAlphabetically(source.Select(x => x.BgcCodeNavigation.VariantCode)),
+            PhaseCodeValues = SortAlphabetically(source.Select(x => x.BgcCodeNavigation.PhaseCode)),
+            EcosystemCodeValues = SortAlphabetically(source.Select(x => x.EcoCode)),
+            MapCodeValues = SortAlphabetically(source.Select(x => x.EcoCodeNavigation.MapCode)),
+            SiteSeriesCodeValues = SortNumerically(source.Select(x => x.EcoCodeNavigation.SiteSeriesCode)),
+            SsPhaseCodeValues = SortAlphabetically(source.Select(x => x.EcoCodeNavigation.SsPhaseCode)),
+            SeralCodeValues = SortAlphabetically(source.Select(x => x.EcoCodeNavigation.SeralCode)),
+            VariationCodeValues = SortAlphabetically(source.Select(x => x.EcoCodeNavigation.VariationCode)),
+            NbecCodeValues = SortAlphabetically(source.Select(x => x.NbecCode)),
+            SiteComponentCodeValues = SortAlphabetically(source.Select(x => x.SiteComponentCode)),
+            RealmCodeValues = SortAlphabetically(source.Select(x => x.SiteComponentCodeNavigation?.RealmCode)),
+            GroupCodeValues = SortAlphabetically(source.Select(x => x.SiteComponentCodeNavigation?.GroupCode)),
+            ClassCodeValues = SortAlphabetically(source.Select(x => x.SiteComponentCodeNavigation?.ClassCode)),
+            AssociationCodeValues = SortAlphabetically(source.Select(x => x.SiteComponentCodeNavigation?.AssociationCode)),
+            SubclassCodeValues = SortAlphabetically(source.Select(x => x.SiteComponentCodeNavigation?.SubClassCode)),
+            SourceValues = SortAlphabetically(source.Select(x => x.Source)),
+            EcosystemTypeValues = SortValuesAlphabetically(source.Select(x => GenerateCodeDescription(x.EcoSystemType, x.EcoSystemTypeNavigation?.Detail))),
+            EcosystemSubtypeValues = SortValuesAlphabetically(source.Select(x => GenerateCodeDescription(x.EcoSystemSubType, x.EcoSystemSubTypeNavigation?.Detail))),
+            KindTypeValues = SortValuesAlphabetically(source.Select(x => GenerateCodeDescription(x.KindType, x.KindTypeNavigation?.Detail))),
+            SiteSeriesNameValues = SortAlphabetically(source.Select(x => x.SiteSeriesName)),
             ForestedValues = source.Select(x => x.Forested).Distinct().ToList(),
             ApprovedValues = source.Select(x => x.Approved).Distinct().ToList(),
             ResultCount = source.Count,
             UniqueResult = source.Count == 1 ? this.MapToFullBgcEcoCode(source[0]) : null,
         };
 
-        List<string> Filter(IEnumerable<string?> collection)
+        CodeDescription GenerateCodeDescription(string? value, string? description)
+        {
+            return new() { Value = value ?? string.Empty, Description = description };
+        }
+
+        List<string> SortAlphabetically(IEnumerable<string?> collection)
         {
             return collection.Distinct().OrderBy(x => x).Select(x => x ?? string.Empty).ToList();
+        }
+
+        List<string> SortNumerically(IEnumerable<string?> collection)
+        {
+            return collection.Distinct().OrderBy(x => x.AsInt()).Select(x => x ?? string.Empty).ToList();
+        }
+
+        List<CodeDescription> SortValuesAlphabetically(IEnumerable<CodeDescription> collection)
+        {
+            return collection.Distinct().OrderBy(x => x.Value).ToList();
         }
     }
 

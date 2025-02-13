@@ -12,11 +12,10 @@
                     class="form-select form-select-sm"
                     disabled="@(Deactivated || Field.FilteredValues.Count < 2)">
                 <option value="@SelectField.UnselectedValue"></option>
-                @foreach (string value in Field.FilteredValues)
+                @foreach ((string value, string displayValue) in Field.FilteredValues)
                 {
-                    string label = value == string.Empty ? "-" : value;
                     <option value="@value"
-                            @key="@value">@label</option>
+                            @key="@value">@(displayValue == string.Empty ? "-" : displayValue)</option>
                 }
             </select>
         </div>
@@ -34,11 +33,10 @@
                                 class="form-select"
                                 disabled="@(Deactivated || subfield.FilteredValues.Count < 2)">
                             <option value="@SelectField.UnselectedValue"></option>
-                            @foreach (string value in subfield.FilteredValues)
+                            @foreach ((string value, string displayValue) in subfield.FilteredValues)
                             {
-                                string label = value == string.Empty ? "-" : value;
                                 <option value="@value"
-                                        @key="@value">@label</option>
+                                        @key="@value">@(displayValue == string.Empty ? "-" : displayValue)</option>
                             }
                         </select>
                         <label for="@subfield.InputId">@subfield.Label</label>
