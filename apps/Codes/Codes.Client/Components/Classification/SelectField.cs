@@ -2,20 +2,40 @@
 
 using TEI.Codes.Data;
 
-public class SelectField(
-    string label,
-    Func<FilterBcgEcoCodesResponse?, IList<string>> retrieveOptions,
-    Action<FilterBcgEcoCodesRequest, string?> populateRequest,
-    Func<FilterBcgEcoCodesRequest, string?> retrieveParameter)
+public class SelectField
 {
     public const string UnselectedValue = "[UNSELECTED]";
 
-    public string Label { get; } = label;
-    private Func<FilterBcgEcoCodesResponse?, IList<string>> RetrieveOptionsFunc { get; } = retrieveOptions;
-    private Action<FilterBcgEcoCodesRequest, string?> PopulateRequestAction { get; } = populateRequest;
-    private Func<FilterBcgEcoCodesRequest, string?> RetrieveParameterFunc { get; } = retrieveParameter;
+    public SelectField(
+        string label,
+        Func<FilterBcgEcoCodesResponse?, IList<string>> retrieveOptions,
+        Action<FilterBcgEcoCodesRequest, string?> populateRequest,
+        Func<FilterBcgEcoCodesRequest, string?> retrieveParameter)
+    {
+        this.Label = label;
+        this.RetrieveOptionsFunc = r => retrieveOptions(r).Select<string, (string, string)>(o => (o, o)).ToList();
+        this.PopulateRequestAction = populateRequest;
+        this.RetrieveParameterFunc = retrieveParameter;
+    }
 
-    public IList<string> FilteredValues { get; private set; } = [];
+    public SelectField(
+        string label,
+        Func<FilterBcgEcoCodesResponse?, IList<(string, string)>> retrieveOptions,
+        Action<FilterBcgEcoCodesRequest, string?> populateRequest,
+        Func<FilterBcgEcoCodesRequest, string?> retrieveParameter)
+    {
+        this.Label = label;
+        this.RetrieveOptionsFunc = retrieveOptions;
+        this.PopulateRequestAction = populateRequest;
+        this.RetrieveParameterFunc = retrieveParameter;
+    }
+
+    public string Label { get; }
+    private Func<FilterBcgEcoCodesResponse?, IList<(string, string)>> RetrieveOptionsFunc { get; }
+    private Action<FilterBcgEcoCodesRequest, string?> PopulateRequestAction { get; }
+    private Func<FilterBcgEcoCodesRequest, string?> RetrieveParameterFunc { get; }
+
+    public IList<(string, string)> FilteredValues { get; private set; } = [];
     public string SelectedValue { get; private set; } = UnselectedValue;
     public IList<SelectField> Subfields { get; init; } = [];
 
@@ -43,12 +63,12 @@ public class SelectField(
         logger.LogInformation("Updating filtered values for {Field}", this.Label);
         this.FilteredValues = this.RetrieveOptionsFunc(response);
 
-        if (this.FilteredValues.Count == 1 && this.SelectedValue != this.FilteredValues[0])
+        if (this.FilteredValues.Count == 1 && this.SelectedValue != this.FilteredValues[0].Item1)
         {
             logger.LogInformation("Updating selected {Field} value to match only available option", this.Label);
-            this.SelectedValue = this.FilteredValues[0];
+            this.SelectedValue = this.FilteredValues[0].Item1;
         }
-        else if (!this.FilteredValues.Contains(this.SelectedValue))
+        else if (this.FilteredValues.All(v => v.Item1 != this.SelectedValue))
         {
             this.SelectedValue = UnselectedValue;
         }

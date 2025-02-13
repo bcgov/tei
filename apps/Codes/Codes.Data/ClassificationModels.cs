@@ -50,14 +50,20 @@ public record FilterBcgEcoCodesResponse
     public required List<string> AssociationCodeValues { get; init; }
     public required List<string> SubclassCodeValues { get; init; }
     public required List<string> SourceValues { get; init; }
-    public required List<string> EcosystemTypeValues { get; init; }
-    public required List<string> EcosystemSubtypeValues { get; init; }
-    public required List<string> KindTypeValues { get; init; }
+    public required List<CodeDescription> EcosystemTypeValues { get; init; }
+    public required List<CodeDescription> EcosystemSubtypeValues { get; init; }
+    public required List<CodeDescription> KindTypeValues { get; init; }
     public required List<string> SiteSeriesNameValues { get; init; }
     public required List<bool> ForestedValues { get; init; }
     public required List<bool> ApprovedValues { get; init; }
     public required int ResultCount { get; init; }
     public required FullBgcEcoCode? UniqueResult { get; init; }
+}
+
+public record CodeDescription
+{
+    public required string Value { get; init; }
+    public required string? Description { get; init; }
 }
 
 public record FullBgcEcoCode

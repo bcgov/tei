@@ -141,9 +141,9 @@ else
         },
         new("Site Series Name", response => response?.SiteSeriesNameValues ?? [], (request, value) => request.SiteSeriesName = value, request => request.SiteSeriesName),
         new SelectFieldBoolean("Forested", response => response?.ForestedValues ?? [], (request, value) => request.Forested = value, request => request.Forested),
-        new("Ecosystem Type", response => response?.EcosystemTypeValues ?? [], (request, value) => request.EcosystemType = value, request => request.EcosystemType),
-        new("Ecosystem Subtype", response => response?.EcosystemSubtypeValues ?? [], (request, value) => request.EcosystemSubtype = value, request => request.EcosystemSubtype),
-        new("Kind", response => response?.KindTypeValues ?? [], (request, value) => request.KindType = value, request => request.KindType),
+        new("Ecosystem Type", response => response?.EcosystemTypeValues.Select(x => (x.Value, GenerateDisplayedValue(x))).ToList() ?? [], (request, value) => request.EcosystemType = value, request => request.EcosystemType),
+        new("Ecosystem Subtype", response => response?.EcosystemSubtypeValues.Select(x => (x.Value, GenerateDisplayedValue(x))).ToList() ?? [], (request, value) => request.EcosystemSubtype = value, request => request.EcosystemSubtype),
+        new("Kind", response => response?.KindTypeValues.Select(x => (x.Value, GenerateDisplayedValue(x))).ToList() ?? [], (request, value) => request.KindType = value, request => request.KindType),
         new("Source", response => response?.SourceValues ?? [], (request, value) => request.Source = value, request => request.Source),
         new SelectFieldBoolean("Approved", response => response?.ApprovedValues ?? [], (request, value) => request.Approved = value, request => request.Approved),
     ];
@@ -204,6 +204,13 @@ else
     ];
 
     private bool FiltersAreEmpty => SelectFields.All(x => x.IsEmpty);
+
+    private static string GenerateDisplayedValue(CodeDescription codeDescription)
+    {
+        return string.IsNullOrEmpty(codeDescription.Description)
+            ? codeDescription.Value
+            : $"{codeDescription.Value} - {codeDescription.Description}";
+    }
 
     protected override async Task OnInitializedAsync()
     {
