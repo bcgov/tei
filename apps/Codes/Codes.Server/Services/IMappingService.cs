@@ -1,11 +1,12 @@
 ﻿namespace TEI.Codes.Server.Services;
 
-using TEI.Codes.Data;
+using TEI.Codes.Data.Models;
+using TEI.Common.Data.Models;
 using TEI.Database.Data.Entities;
 using TEI.Database.Server.Access;
 
 public interface IMappingService
 {
     BcgEcoCodeParameters MapToBcgEcoCodeParameters(FilterBcgEcoCodesRequest source);
-    FilterBcgEcoCodesResponse MapToFilterBcgEcoCodesResponse(IList<Bgcecocode> source);
+    PaginatedResult<FilterBcgEcoCodesResponse> MapToFilterBcgEcoCodesResponse(PaginatedRequest<IList<Bgcecocode>> request);
 }

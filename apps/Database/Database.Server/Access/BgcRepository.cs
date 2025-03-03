@@ -1,23 +1,26 @@
 ﻿namespace TEI.Database.Server.Access;
 
 using System.Diagnostics.CodeAnalysis;
+using Common.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using TEI.Database.Data.Entities;
 using TEI.Database.Server.Context;
 
 public interface IBgcRepository
 {
-    Task<IList<Bgcecocode>> RetrieveBgcEcoCodesAsync(BcgEcoCodeParameters parameters, CancellationToken ct);
+    Task<IList<Bgcecocode>> RetrieveBgcEcoCodesAsync(BcgEcoCodeParameters parameters, CancellationToken ct = default);
 }
 
 public class BgcRepository(TeiDbContext dbContext) : IBgcRepository
 {
     [SuppressMessage("ReSharper.DPA", "DPA0007: Large number of DB records")]
-    public async Task<IList<Bgcecocode>> RetrieveBgcEcoCodesAsync(BcgEcoCodeParameters parameters, CancellationToken ct)
+    public async Task<IList<Bgcecocode>> RetrieveBgcEcoCodesAsync(BcgEcoCodeParameters parameters, CancellationToken ct = default)
     {
         IQueryable<Bgcecocode> query = dbContext.Bgcecocodes
             .Include(x => x.BgcCodeNavigation)
+            .ThenInclude(x => x.ZoneCodeNavigation)
             .Include(x => x.EcoCodeNavigation)
+            .ThenInclude(x => x.MapCodeNavigation)
             .Include(x => x.SiteComponentCodeNavigation)
             .Include(x => x.EcoSystemTypeNavigation)
             .Include(x => x.EcoSystemSubTypeNavigation)

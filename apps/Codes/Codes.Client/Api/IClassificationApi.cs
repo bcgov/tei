@@ -16,10 +16,11 @@
 namespace TEI.Codes.Client.Api;
 
 using Refit;
-using TEI.Codes.Data;
+using TEI.Codes.Data.Models;
+using TEI.Common.Data.Models;
 
 public interface IClassificationApi
 {
     [Post("/FilterBgcEcoCodes")]
-    Task<FilterBcgEcoCodesResponse> FilterBgcEcoCodes(FilterBcgEcoCodesRequest request, CancellationToken ct = default);
+    Task<PaginatedResult<FilterBcgEcoCodesResponse>> FilterBgcEcoCodes(FilterBcgEcoCodesRequest request, CancellationToken ct = default);
 }

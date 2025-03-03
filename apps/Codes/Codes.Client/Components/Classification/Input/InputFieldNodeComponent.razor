@@ -1,0 +1,98 @@
+﻿@inherits ComponentBase
+
+<div class="@ColClasses">
+    @if (Node is InputFieldLeafNode leafNode)
+    {
+        @if (leafNode.FloatingLabel)
+        {
+            <div class="form-floating">
+                <InputFieldComponent
+                    Field="@leafNode.Field"
+                    OnSelectCallback="@OnSelectCallback"
+                    Deactivated="@Deactivated" />
+                <label for="@leafNode.Field.InputId">@leafNode.Field.Label</label>
+            </div>
+        }
+        else
+        {
+            <div class="row g-0">
+                <label for="@leafNode.Field.InputId"
+                       class="col-6 col-sm-4 col-form-label col-form-label-sm">@leafNode.Field.Label</label>
+                <div class="col-6 col-sm-8">
+                    <InputFieldComponent
+                        Field="@leafNode.Field"
+                        OnSelectCallback="@OnSelectCallback"
+                        Deactivated="@Deactivated" />
+                </div>
+            </div>
+        }
+    }
+    else if (Node.Children.Count > 0)
+    {
+        if (Node.Label != null)
+        {
+            <div class="card border-secondary">
+                <div class="card-body p-2.5 row g-3">
+                    @foreach (InputFieldNode child in Node.Children)
+                    {
+                        <InputFieldNodeComponent
+                            Node="@child"
+                            OnSelectCallback="@OnSelectCallback"
+                            Deactivated="@Deactivated" />
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (InputFieldNode child in Node.Children)
+                {
+                    <InputFieldNodeComponent
+                        Node="@child"
+                        OnSelectCallback="@OnSelectCallback"
+                        Deactivated="@Deactivated" />
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public required InputFieldNode Node { get; set; }
+
+    [Parameter]
+    public required EventCallback OnSelectCallback { get; set; }
+
+    [Parameter]
+    public required bool Deactivated { get; set; }
+
+    private string ColClasses
+    {
+        get
+        {
+            string classes = Node.XsWidth switch
+            {
+                null => "col",
+                _ => $"col-{Node.XsWidth}",
+            };
+
+            classes += Node.MdWidth switch
+            {
+                null => " col-md",
+                _ => $" col-md-{Node.MdWidth}",
+            };
+
+            classes += Node.XlWidth switch
+            {
+                null => " col-xl",
+                _ => $" col-xl-{Node.XlWidth}",
+            };
+
+            return classes;
+        }
+    }
+
+}

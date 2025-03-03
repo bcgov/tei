@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codes.Data", "Codes\Codes.D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codes.Server", "Codes\Codes.Server\Codes.Server.csproj", "{7BDAE912-3552-F0E4-CF5C-772B869BE5CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Data", "Common\Common.Data\Common.Data.csproj", "{E5670996-6838-4348-ADD1-97FDD3F86AD2}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Server", "Common\Common.Server\Common.Server.csproj", "{B34D8FED-63CB-4E2E-A180-89FE7A94F66B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Data", "Database\Database.Data\Database.Data.csproj", "{0D84F15D-106F-4284-9127-71ACAC53BADD}"
@@ -47,5 +49,9 @@ Global
 		{FDE5CABA-0A10-4444-8742-F11769F497B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDE5CABA-0A10-4444-8742-F11769F497B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDE5CABA-0A10-4444-8742-F11769F497B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5670996-6838-4348-ADD1-97FDD3F86AD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5670996-6838-4348-ADD1-97FDD3F86AD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5670996-6838-4348-ADD1-97FDD3F86AD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5670996-6838-4348-ADD1-97FDD3F86AD2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

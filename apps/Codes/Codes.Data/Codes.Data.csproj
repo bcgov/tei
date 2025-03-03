@@ -4,4 +4,8 @@
         <RootNamespace>TEI.Codes.Data</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\Common\Common.Data\Common.Data.csproj" />
+    </ItemGroup>
+
 </Project>

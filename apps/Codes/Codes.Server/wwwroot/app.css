@@ -3,6 +3,10 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+body {
+    overflow-y: scroll;
+}
+
 a,
 .btn-link {
     color: #006bb7;
@@ -75,4 +79,8 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+.p-2\.5 {
+    padding: 0.75rem;
 }

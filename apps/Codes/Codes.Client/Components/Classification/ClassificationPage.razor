@@ -1,307 +1,290 @@
 ﻿@page "/"
-@inject ILogger<ClassificationPage> Logger
-@inject IClassificationApi ClassificationApi
-@using TEI.Codes.Client.Api
-@using TEI.Codes.Data
+@inject IClassificationFilterService FilterService
+@using TEI.Codes.Client.Components.Classification.Input
+@using TEI.Codes.Client.Components.Classification.Output
+@using TEI.Codes.Client.Models.Classification
+@using TEI.Codes.Client.Services
+@using TEI.Codes.Data.Models
 @inherits ComponentBase
 
 <PageTitle>Biogeoclimatic Ecosystem Classification</PageTitle>
 
-<h1>Biogeoclimatic Ecosystem Classification</h1>
-
-@if (Loading)
-{
-    <p>
-        <span class="spinner-border spinner-border-sm"
-              role="status"></span>
-        <em>Loading... </em>
-    </p>
-}
-else if (FilterResponse?.ResultCount != null)
-{
-    <p>@FilterResponse.ResultCount matching record@(FilterResponse.ResultCount == 1 ? "" : "s").</p>
-}
-else
-{
-    <p class="text-danger">
-        Unable to retrieve data.
-        <a href=""
-           @onclick="@FilterResultsAsync"
-           @onclick:preventDefault>Retry</a>
-    </p>
-}
-
-<div class="row gy-3">
-    <div class="col-12 col-xl-6 d-grid gap-2 align-content-start">
-        <h4>Filters</h4>
-        <div class="d-flex gap-2">
-            <button type="button"
-                    @onclick="ClearAllFilters"
-                    class="btn btn-secondary btn-sm flex-fill"
-                    disabled="@(FiltersAreEmpty || Loading)">
-                <img src="/lib/bootstrap/icons/x-circle.svg"
-                     alt=""
-                     aria-hidden="true"
-                     width="16"
-                     height="16" />
-                Reset
-            </button>
-            <button type="button"
-                    @onclick="RestorePreviousFilter"
-                    class="btn btn-secondary btn-sm flex-fill"
-                    disabled="@FiltersAreEmpty"
-                    aria-label="Restore previous filter">
-                <img src="/lib/bootstrap/icons/arrow-left.svg"
-                     alt=""
-                     aria-hidden="true"
-                     width="16"
-                     height="16" />
-                Back
-            </button>
+<div class="mb-4 d-grid gap-2 align-content-start">
+    <div class="row g-0 mb-2 mb-sm-1">
+        <div class="col col-sm-4 col-xl-6">
+            <h4 class="mb-0">Filters</h4>
         </div>
-        @foreach (SelectField field in SelectFields)
-        {
-            <SelectFieldComponent
-                Field="@field"
-                OnSelectCallback="FilterResultsAsync"
-                Deactivated="@(FilterResponse == null || Loading)" />
-        }
-    </div>
-    <div class="col d-grid gap-2">
-        <h4>Result</h4>
-        @foreach (List<OutputField> group in OutputFieldGroups)
-        {
-            <div class="card">
-                <div class="card-body row gy-2">
-                    @foreach (OutputField field in group)
-                    {
-                        <OutputFieldComponent
-                            Field="@field" />
-                    }
-                </div>
+        <div class="col col-sm-8 col-xl-6">
+            <div class="d-grid gap-3 gap-sm-3 d-sm-flex justify-content-sm-end">
+                <button type="button"
+                        @onclick="ClearAllFilters"
+                        class="btn btn-secondary btn-sm flex-fill"
+                        disabled="@(FilterService.FiltersAreEmpty || FilterService.Loading)">
+                    <img src="/lib/bootstrap/icons/x-circle.svg"
+                         alt=""
+                         aria-hidden="true"
+                         width="16"
+                         height="16" />
+                    Reset
+                </button>
+                <button type="button"
+                        @onclick="RestorePreviousFilter"
+                        class="btn btn-secondary btn-sm flex-fill"
+                        disabled="@(FilterService.FiltersAreEmpty || FilterService.Loading || FilterService.HistoryIsEmpty)"
+                        aria-label="Restore previous filter">
+                    <img src="/lib/bootstrap/icons/arrow-left.svg"
+                         alt=""
+                         aria-hidden="true"
+                         width="16"
+                         height="16" />
+                    Back
+                </button>
             </div>
+        </div>
+    </div>
+    <div class="row g-3">
+        @foreach (InputFieldNode node in InputFieldNodes)
+        {
+            <InputFieldNodeComponent
+                Node="@node"
+                OnSelectCallback="FilterResultsAsync"
+                Deactivated="@(FilterResponse == null || FilterService.Loading)" />
         }
     </div>
 </div>
 
+<h4 class="mb-2">
+    @if (FilterService.Loading)
+    {
+        <span class="spinner-border"
+              role="status"></span>
+        <em>Loading... </em>
+    }
+    else if (FilterResponse?.UniqueResult != null)
+    {
+        <text>Result</text>
+    }
+    else if (FilterResponse?.ResultPreviews != null)
+    {
+        <text>Results (@ResultText)</text>
+    }
+    else
+    {
+        <div class="text-danger">
+            Unable to retrieve data.
+            <a href=""
+               @onclick="@FilterResultsAsync"
+               @onclick:preventDefault>Retry</a>
+        </div>
+    }
+</h4>
+
+@if (!FilterService.Loading)
+{
+    @if (FilterResponse?.UniqueResult != null)
+    {
+        <div class="row g-3">
+            @foreach (OutputFieldNode node in OutputFieldNodes)
+            {
+                <OutputFieldNodeComponent
+                    Node="@node" />
+            }
+        </div>
+    }
+    else if (FilterResponse != null)
+    {
+        <div class="card overflow-auto result-table">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                    <tr>
+                        <th scope="col">BGC Label</th>
+                        <th scope="col">BGC Detail</th>
+                        <th scope="col">Zone Detail</th>
+                        <th scope="col">Ecosystem Code</th>
+                        <th scope="col">Site Series Name</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Approved</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (ResultPreview preview in FilterResponse.ResultPreviews)
+                    {
+                        <tr role="button"
+                            @onclick="() => FilterService.FilterToResultAsync(preview)">
+                            <td>@preview.BgcLabel</td>
+                            <td>@preview.BgcDetail</td>
+                            <td>@preview.ZoneDetail</td>
+                            <td>@preview.EcosystemCode</td>
+                            <td>@preview.SiteSeriesName</td>
+                            <td>@preview.Source</td>
+                            <td>@preview.Approved.ToString()</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
 @code {
 
-    private FilterBcgEcoCodesResponse? filterResponse;
+    private FilterBcgEcoCodesResponse? FilterResponse => FilterService.FilterResponse?.Data;
+    private int TotalResultCount => FilterService.FilterResponse?.TotalCount ?? 0;
 
-    private FilterBcgEcoCodesResponse? FilterResponse
+    private string ResultText
     {
-        get => filterResponse;
-
-        set
+        get
         {
-            filterResponse = value;
-            UpdateInputFields(value);
-            UpdateOutputFields(value);
+            string totalText = $"{TotalResultCount} matching record{(TotalResultCount == 1 ? "" : "s")}";
+            if (FilterResponse?.ResultPreviews.Count == TotalResultCount)
+            {
+                return totalText;
+            }
+
+            return $"first {FilterResponse?.ResultPreviews.Count} of {totalText}";
         }
     }
 
-    private Stack<FilterBcgEcoCodes> FilterHistory { get; } = new();
-
-    private bool Loading { get; set; }
-
-    private List<SelectField> SelectFields { get; } =
-    [
-        new("BGC Label", response => response?.BgcCodeValues ?? [], (request, value) => request.BgcCode = value, request => request.BgcCode)
-        {
-            Subfields =
-            [
-                new("Zone", response => response?.ZoneCodeValues ?? [], (request, value) => request.ZoneCode = value, request => request.ZoneCode),
-                new("Subzone", response => response?.SubzoneCodeValues ?? [], (request, value) => request.SubzoneCode = value, request => request.SubzoneCode),
-                new("Variant", response => response?.VariantCodeValues ?? [], (request, value) => request.VariantCode = value, request => request.VariantCode),
-                new("Phase", response => response?.PhaseCodeValues ?? [], (request, value) => request.PhaseCode = value, request => request.PhaseCode),
-            ],
-        },
-        new("Ecosystem Code", response => response?.EcosystemCodeValues ?? [], (request, value) => request.EcosystemCode = value, request => request.EcosystemCode)
-        {
-            Subfields =
-            [
-                new("Map Code", response => response?.MapCodeValues ?? [], (request, value) => request.MapCode = value, request => request.MapCode),
-                new("Site Series", response => response?.SiteSeriesCodeValues ?? [], (request, value) => request.SiteSeriesCode = value, request => request.SiteSeriesCode),
-                new("SS Phase", response => response?.SsPhaseCodeValues ?? [], (request, value) => request.SsPhaseCode = value, request => request.SsPhaseCode),
-                new("Seral", response => response?.SeralCodeValues ?? [], (request, value) => request.SeralCode = value, request => request.SeralCode),
-                new("Variation", response => response?.VariationCodeValues ?? [], (request, value) => request.VariationCode = value, request => request.VariationCode),
-            ],
-        },
-        new("nBEC Code", response => response?.NbecCodeValues ?? [], (request, value) => request.NbecCode = value, request => request.NbecCode),
-        new("Site Component Code", response => response?.SiteComponentCodeValues ?? [], (request, value) => request.SiteComponentCode = value, request => request.SiteComponentCode)
-        {
-            Subfields =
-            [
-                new("Realm", response => response?.RealmCodeValues ?? [], (request, value) => request.RealmCode = value, request => request.RealmCode),
-                new("Group", response => response?.GroupCodeValues ?? [], (request, value) => request.GroupCode = value, request => request.GroupCode),
-                new("Class", response => response?.ClassCodeValues ?? [], (request, value) => request.ClassCode = value, request => request.ClassCode),
-                new("Association", response => response?.AssociationCodeValues ?? [], (request, value) => request.AssociationCode = value, request => request.AssociationCode),
-                new("Subclass", response => response?.SubclassCodeValues ?? [], (request, value) => request.SubclassCode = value, request => request.SubclassCode),
-            ],
-        },
-        new("Site Series Name", response => response?.SiteSeriesNameValues ?? [], (request, value) => request.SiteSeriesName = value, request => request.SiteSeriesName),
-        new SelectFieldBoolean("Forested", response => response?.ForestedValues ?? [], (request, value) => request.Forested = value, request => request.Forested),
-        new("Ecosystem Type", response => response?.EcosystemTypeValues.Select(x => (x.Value, GenerateDisplayedValue(x))).ToList() ?? [], (request, value) => request.EcosystemType = value, request => request.EcosystemType),
-        new("Ecosystem Subtype", response => response?.EcosystemSubtypeValues.Select(x => (x.Value, GenerateDisplayedValue(x))).ToList() ?? [], (request, value) => request.EcosystemSubtype = value, request => request.EcosystemSubtype),
-        new("Kind", response => response?.KindTypeValues.Select(x => (x.Value, GenerateDisplayedValue(x))).ToList() ?? [], (request, value) => request.KindType = value, request => request.KindType),
-        new("Source", response => response?.SourceValues ?? [], (request, value) => request.Source = value, request => request.Source),
-        new SelectFieldBoolean("Approved", response => response?.ApprovedValues ?? [], (request, value) => request.Approved = value, request => request.Approved),
-    ];
-
-    private List<List<OutputField>> OutputFieldGroups { get; } =
-    [
-        [
-            new("BGC Label", code => code?.BgcCode)
-            {
-                Size = OutputFieldSize.Large,
-                Subfields =
-                [
-                    new("Zone", code => code?.ZoneCode),
-                    new("Subzone", code => code?.SubzoneCode),
-                    new("Variant", code => code?.VariantCode),
-                    new("Phase", code => code?.PhaseCode),
-                ],
-            },
-        ],
-        [
-            new("Ecosystem Code", code => code?.EcosystemCode)
-            {
-                Size = OutputFieldSize.Large,
-                Subfields =
-                [
-                    new("Map Code", code => code?.MapCode),
-                    new("Site Series", code => code?.SiteSeriesCode),
-                    new("SS Phase", code => code?.SsPhaseCode),
-                    new("Seral", code => code?.SeralCode),
-                    new("Variation", code => code?.VariationCode),
-                ],
-            },
-        ],
-        [
-            new("nBEC Code", code => code?.NbecCode),
-            new("Site Component Code", code => code?.SiteComponentCode)
-            {
-                Subfields =
-                [
-                    new("Realm", code => code?.RealmCode),
-                    new("Group", code => code?.GroupCode),
-                    new("Class", code => code?.ClassCode),
-                    new("Association", code => code?.AssociationCode),
-                    new("Subclass", code => code?.SubclassCode),
-                ],
-            },
-        ],
-        [
-            new("Site Series Name", code => code?.SiteSeriesName) { Size = OutputFieldSize.Large },
-            new("Forested", code => code?.Forested.ToString()) { Size = OutputFieldSize.Small },
-            new("Ecosystem Type", code => code?.EcosystemType) { Size = OutputFieldSize.Small },
-            new("Ecosystem Subtype", code => code?.EcosystemSubtype) { Size = OutputFieldSize.Small },
-            new("Kind Type", code => code?.KindType) { Size = OutputFieldSize.Small },
-            new("Source", code => code?.Source) { Size = OutputFieldSize.Small, StartNewRow = true },
-            new("Date Added", code => code?.DateAdded.ToString("yyyy-MM-dd")) { Size = OutputFieldSize.Small },
-            new("Approved", code => code?.Approved.ToString()) { Size = OutputFieldSize.Small },
-        ],
-    ];
-
-    private bool FiltersAreEmpty => SelectFields.All(x => x.IsEmpty);
-
-    private static string GenerateDisplayedValue(CodeDescription codeDescription)
-    {
-        return string.IsNullOrEmpty(codeDescription.Description)
-            ? codeDescription.Value
-            : $"{codeDescription.Value} - {codeDescription.Description}";
-    }
+    private IList<InputFieldNode> InputFieldNodes { get; set; } = [];
+    private IList<OutputFieldNode> OutputFieldNodes { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
+        InputFieldNodes = GenerateInputNodes();
+        OutputFieldNodes = GenerateOutputNodes();
         await FilterResultsAsync();
         await base.OnInitializedAsync();
     }
 
+    private IList<InputFieldNode> GenerateInputNodes()
+    {
+        return
+        [
+            new(
+            [
+                new(
+                [
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.BgcLabel]) { XsWidth = 12, MdWidth = 12 },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Zone]) { XsWidth = 12, MdWidth = 12 },
+                ]),
+                new(
+                [
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Subzone]) { FloatingLabel = true, XsWidth = null, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Variant]) { FloatingLabel = true, XsWidth = null, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Phase]) { FloatingLabel = true, XsWidth = null, MdWidth = null, XlWidth = null },
+                ]),
+            ]) { Label = "BGC Label" },
+            new(
+            [
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.EcosystemCode]),
+                new(
+                [
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.MapCode]) { FloatingLabel = true, XsWidth = 6, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.SiteSeries]) { FloatingLabel = true, XsWidth = 6, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.SsPhase]) { FloatingLabel = true, XsWidth = 4, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Seral]) { FloatingLabel = true, XsWidth = 4, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Variation]) { FloatingLabel = true, XsWidth = 4, MdWidth = null, XlWidth = null },
+                ]) { XlWidth = 6 },
+            ]) { Label = "Ecosystem Code" },
+            new(
+            [
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.SiteComponentCode]) { XlWidth = 6 },
+                new(
+                [
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Realm]) { FloatingLabel = true, XsWidth = 6, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Group]) { FloatingLabel = true, XsWidth = 6, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Class]) { FloatingLabel = true, XsWidth = 4, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Association]) { FloatingLabel = true, XsWidth = 4, MdWidth = null, XlWidth = null },
+                    new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Subclass]) { FloatingLabel = true, XsWidth = 4, MdWidth = null, XlWidth = null },
+                ]) { XlWidth = 6 },
+            ]) { Label = "Site Component Code" },
+            new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.NbecCode]) { XlWidth = 4 },
+            new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.SiteSeriesName]) { XlWidth = 8 },
+            new(
+            [
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.EcosystemType]) { XlWidth = 4 },
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.EcosystemSubtype]) { XlWidth = 4 },
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.KindType]) { XlWidth = 4 },
+            ]) { MdWidth = 8 },
+            new(
+            [
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Forested]) { XlWidth = 4 },
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Source]) { XlWidth = 4 },
+                new InputFieldLeafNode(FilterService.InputFields[ClassificationFieldType.Approved]) { XlWidth = 4 },
+            ]) { MdWidth = 4 },
+        ];
+    }
+
+    private IList<OutputFieldNode> GenerateOutputNodes()
+    {
+        return
+        [
+            new(
+            [
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.BgcLabel]) { XsWidth = 12, XlWidth = 5 },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Zone]) { XsWidth = 12, XlWidth = 4 },
+                new(
+                [
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Subzone]) { XsWidth = null },
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Variant]) { XsWidth = null },
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Phase]) { XsWidth = null },
+                ]) { XlWidth = 3 },
+            ]) { Label = "BGC Label" },
+            new(
+            [
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.EcosystemCode]) { XsWidth = null },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.MapCode]) { XsWidth = 12, MdWidth = 5, XlWidth = 4 },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.SiteSeries]) { XsWidth = null },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.SsPhase]) { XsWidth = null },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Seral]) { XsWidth = null },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Variation]) { XsWidth = null },
+            ]) { Label = "Ecosystem Code" },
+            new(
+            [
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.SiteComponentCode]),
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Realm]),
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Group]),
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Class]),
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Association]),
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Subclass]),
+            ]) { Label = "Site Component Code" },
+            new(
+            [
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.NbecCode]) { XsWidth = 4, MdWidth = 4, XlWidth = 2 },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.DateAdded]) { XsWidth = 4, MdWidth = 4, XlWidth = 2 },
+                new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.SiteSeriesName]) { XsWidth = 12, MdWidth = 12, XlWidth = 8 },
+                new(
+                [
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.EcosystemType]) { XsWidth = null },
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.EcosystemSubtype]) { XsWidth = null },
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.KindType]) { XsWidth = null },
+                ]) { XsWidth = 12, MdWidth = 12, XlWidth = 6 },
+                new(
+                [
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Forested]) { XsWidth = null },
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Source]) { XsWidth = null },
+                    new OutputFieldLeafNode(FilterService.OutputFields[ClassificationFieldType.Approved]) { XsWidth = null },
+                ]) { XsWidth = 12, MdWidth = 12, XlWidth = 6 },
+            ]) { Label = "Additional Information" },
+        ];
+    }
+
     private async Task FilterResultsAsync()
     {
-        if (FilterHistory.Count > 0 && FiltersAreEmpty)
-        {
-            FilterResponse = FilterHistory.Last().Response;
-        }
-        else
-        {
-            FilterBcgEcoCodesRequest request = new();
-            foreach (SelectField field in SelectFields)
-            {
-                field.PopulateRequest(request, Logger);
-            }
-
-            await GetFilterResponseAsync(request);
-        }
-    }
-
-    private async Task GetFilterResponseAsync(FilterBcgEcoCodesRequest request)
-    {
-        try
-        {
-            Loading = true;
-            FilterResponse = await ClassificationApi.FilterBgcEcoCodes(request);
-            FilterHistory.Push(new() { Request = request, Response = FilterResponse });
-        }
-        finally
-        {
-            Loading = false;
-            StateHasChanged();
-        }
-    }
-
-    private void UpdateInputFields(FilterBcgEcoCodesResponse? response)
-    {
-        foreach (SelectField field in SelectFields)
-        {
-            field.UpdateFilteredValues(response, Logger);
-        }
-    }
-
-    private void UpdateOutputFields(FilterBcgEcoCodesResponse? response)
-    {
-        foreach (OutputField field in OutputFieldGroups.SelectMany(group => group))
-        {
-            field.SetValues(response?.UniqueResult);
-        }
-    }
-
-    private void RestoreFilter(FilterBcgEcoCodes filter)
-    {
-        foreach (SelectField field in SelectFields)
-        {
-            field.UpdateSelectedValue(filter.Request, Logger);
-        }
-
-        foreach (SelectField field in SelectFields)
-        {
-            field.UpdateFilteredValues(filter.Response, Logger);
-        }
-
-        FilterResponse = filter.Response;
+        await FilterService.FilterResultsAsync();
+        StateHasChanged();
     }
 
     private void ClearAllFilters()
     {
-        Logger.LogInformation("Clearing all filters");
-
-        FilterBcgEcoCodes initialFilter = FilterHistory.Last();
-        FilterHistory.Clear();
-        RestoreFilter(initialFilter);
-        FilterHistory.Push(initialFilter);
+        FilterService.ClearAllFilters();
     }
 
     private void RestorePreviousFilter()
     {
-        FilterHistory.Pop();
-        RestoreFilter(FilterHistory.Peek());
-    }
-
-    private record FilterBcgEcoCodes
-    {
-        public required FilterBcgEcoCodesRequest Request { get; init; }
-        public required FilterBcgEcoCodesResponse Response { get; init; }
+        FilterService.RestorePreviousFilter();
     }
 
 }
