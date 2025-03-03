@@ -1,0 +1,4 @@
+[Context/**.cs]
+
+# CA1505:Avoid unmaintainable code
+dotnet_diagnostic.ca1505.severity = none

@@ -1,0 +1,72 @@
+﻿@inherits ComponentBase
+
+<div class="@ColClasses">
+    @if (Node is OutputFieldLeafNode leafNode)
+    {
+        <div class="form-floating">
+            <input class="form-control-plaintext"
+                   id="@leafNode.Field.ElementId"
+                   readonly
+                   value="@(leafNode.Field.Value ?? "-")">
+            <label for="@leafNode.Field Field.ElementId">@leafNode.Field.Label</label>
+        </div>
+    }
+    else if (Node.Children.Count > 0)
+    {
+        if (Node.Label != null)
+        {
+            <div class="card border-secondary">
+                <div class="card-body p-0 row g-3">
+                    @foreach (OutputFieldNode child in Node.Children)
+                    {
+                        <OutputFieldNodeComponent
+                            Node="@child" />
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (OutputFieldNode child in Node.Children)
+                {
+                    <OutputFieldNodeComponent
+                        Node="@child" />
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public required OutputFieldNode Node { get; set; }
+
+    private string ColClasses
+    {
+        get
+        {
+            string classes = Node.XsWidth switch
+            {
+                null => "col",
+                _ => $"col-{Node.XsWidth}",
+            };
+
+            classes += Node.MdWidth switch
+            {
+                null => " col-md",
+                _ => $" col-md-{Node.MdWidth}",
+            };
+
+            classes += Node.XlWidth switch
+            {
+                null => " col-xl",
+                _ => $" col-xl-{Node.XlWidth}",
+            };
+
+            return classes;
+        }
+    }
+
+}

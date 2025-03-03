@@ -1,0 +1,35 @@
+﻿@using TEI.Codes.Client.Models.Classification
+@inherits ComponentBase
+@inject ILogger<InputFieldComponent> Logger
+
+<select @bind:get="@Field.SelectedValue"
+        @bind:set="ChangeValueAsync"
+        id="@Field.InputId"
+        class="form-select form-select-sm"
+        disabled="@(Deactivated || Field.FilteredValues.Count < 2)">
+    <option value="@ClassificationInputField.UnselectedValue"></option>
+    @foreach ((string value, string displayValue) in Field.FilteredValues)
+    {
+        <option value="@value"
+                @key="@value">@(displayValue == string.Empty ? "-" : displayValue)</option>
+    }
+</select>
+
+@code {
+
+    [Parameter]
+    public required ClassificationInputField Field { get; set; }
+
+    [Parameter]
+    public required EventCallback OnSelectCallback { get; set; }
+
+    [Parameter]
+    public required bool Deactivated { get; set; }
+
+    private Task ChangeValueAsync(string value)
+    {
+        Field.UpdateSelectedValue(value, Logger);
+        return OnSelectCallback.InvokeAsync();
+    }
+
+}

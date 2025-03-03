@@ -1,0 +1,18 @@
+﻿.result-table {
+    font-size: 0.75em;
+    max-height: calc(100vh - 5rem);
+}
+
+@media (min-height: 830px) and (min-width: 1400px) {
+    .result-table {
+        max-height: calc(100vh - 41.25rem);
+    }
+
+}
+
+@media (min-height: 856px) and (min-width: 1200px) {
+    .result-table {
+        max-height: calc(100vh - 42.5rem);
+    }
+
+}
