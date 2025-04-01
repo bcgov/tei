@@ -158,6 +158,9 @@
         await base.OnInitializedAsync();
     }
 
+    /// <summary>
+    /// Organizes input fields into a hierarchical structure to control their size and positioning in the UI.
+    /// </summary>
     private IList<InputFieldNode> GenerateInputNodes()
     {
         return
@@ -217,6 +220,9 @@
         ];
     }
 
+    /// <summary>
+    /// Organizes output fields into a hierarchical structure to control their size and positioning in the UI.
+    /// </summary>
     private IList<OutputFieldNode> GenerateOutputNodes()
     {
         return

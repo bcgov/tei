@@ -3,8 +3,8 @@
 using AutoMapper;
 using TEI.Codes.Data.Models;
 using TEI.Common.Data.Models;
-using TEI.Common.Server;
-using TEI.Database.Data.Entities;
+using TEI.Common.Data.Utilities;
+using TEI.Database.Model.Entities;
 using TEI.Database.Server.Access;
 
 public class MappingService(IMapper mapper) : IMappingService

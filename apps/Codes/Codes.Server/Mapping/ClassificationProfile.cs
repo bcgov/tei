@@ -2,7 +2,7 @@
 
 using AutoMapper;
 using TEI.Codes.Data.Models;
-using TEI.Database.Data.Entities;
+using TEI.Database.Model.Entities;
 using TEI.Database.Server.Access;
 
 public class ClassificationProfile : Profile

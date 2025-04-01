@@ -3,6 +3,9 @@
 using TEI.Codes.Data.Models;
 using TEI.Common.Data.Utilities;
 
+/// <summary>
+/// Manages behaviour associated with an output field.
+/// </summary>
 public class ClassificationOutputField(ClassificationFieldType fieldType, Func<FullBgcEcoCode?, string?> selectValueFunc)
 {
     private Func<FullBgcEcoCode?, string?> SelectValueFunc { get; } = selectValueFunc;

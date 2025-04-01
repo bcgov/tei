@@ -3,6 +3,9 @@
 using TEI.Codes.Data.Models;
 using TEI.Common.Data.Utilities;
 
+/// <summary>
+/// Manages behaviour associated with a string dropdown input field.
+/// </summary>
 public class ClassificationInputField
 {
     public const string UnselectedValue = "[UNSELECTED]";

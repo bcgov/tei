@@ -4,6 +4,9 @@ using TEI.Codes.Client.Models.Classification;
 using TEI.Codes.Data.Models;
 using TEI.Common.Data.Models;
 
+/// <summary>
+/// Handles filter logic relating to forming and sending requests and manipulating responses.
+/// </summary>
 public interface IClassificationFilterService
 {
     IDictionary<ClassificationFieldType, ClassificationInputField> InputFields { get; }
