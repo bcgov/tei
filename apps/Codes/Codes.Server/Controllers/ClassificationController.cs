@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TEI.Codes.Data.Models;
 using TEI.Codes.Server.Services;
 using TEI.Common.Data.Models;
-using TEI.Database.Data.Entities;
+using TEI.Database.Model.Entities;
 using TEI.Database.Server.Access;
 
 [ApiController]

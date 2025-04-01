@@ -5,19 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Database.Data\Database.Data.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Context\" />
+        <ProjectReference Include="..\..\Common\Common.Data\Common.Data.csproj" />
+        <ProjectReference Include="..\Database.Model\Database.Model.csproj" />
     </ItemGroup>
 
 </Project>

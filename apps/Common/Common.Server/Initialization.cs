@@ -6,9 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql;
+using TEI.Database.Model.Context;
 using TEI.Database.Server.Access;
-using TEI.Database.Server.Context;
 
 public static class Initialization
 {
@@ -43,18 +42,6 @@ public static class Initialization
 
     private static string GetConnectionString(IConfiguration configuration)
     {
-        // return configuration.GetConnectionString("TEI") ?? throw new InvalidOperationException("Database connection string is undefined")
-        string host = configuration.GetValue<string?>("POSTGRES_HOST") ?? throw new InvalidOperationException("Database host is undefined");
-        string database = configuration.GetValue<string?>("POSTGRES_DATABASE") ?? throw new InvalidOperationException("Database is undefined");
-        string user = configuration.GetValue<string?>("POSTGRES_USER") ?? throw new InvalidOperationException("Database user is undefined");
-        string password = configuration.GetValue<string?>("POSTGRES_PASSWORD") ?? throw new InvalidOperationException("Database password is undefined");
-
-        return new NpgsqlConnectionStringBuilder
-            {
-                Host = host,
-                Database = database,
-                Username = user,
-                Password = password,
-            }.ConnectionString;
+        return configuration.GetConnectionString("TEI") ?? throw new InvalidOperationException("Database connection string is undefined");
     }
 }

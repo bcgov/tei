@@ -9,14 +9,8 @@
         <ProjectReference Include="..\Codes.Client\Codes.Client.csproj" />
         <ProjectReference Include="..\Codes.Data\Codes.Data.csproj" />
         <ProjectReference Include="..\..\Common\Common.Server\Common.Server.csproj" />
-        <ProjectReference Include="..\..\Database\Database.Server\Database.Server.csproj" />
+        <ProjectReference Include="..\..\Database\Database.Model\Database.Model.csproj" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="..\..\.dockerignore">
-            <Link>.dockerignore</Link>
-        </Content>
     </ItemGroup>
 
 </Project>

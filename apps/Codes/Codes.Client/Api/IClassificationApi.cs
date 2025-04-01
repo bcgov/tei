@@ -19,6 +19,9 @@ using Refit;
 using TEI.Codes.Data.Models;
 using TEI.Common.Data.Models;
 
+/// <summary>
+/// Refit API for classification.
+/// </summary>
 public interface IClassificationApi
 {
     [Post("/FilterBgcEcoCodes")]

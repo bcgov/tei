@@ -7,6 +7,7 @@ using TEI.Codes.Client.Models.Classification;
 using TEI.Codes.Data.Models;
 using TEI.Common.Data.Models;
 
+/// <inheritdoc />
 public class ClassificationFilterService(ILogger<ClassificationFilterService> logger, IClassificationApi classificationApi) : IClassificationFilterService
 {
     private PaginatedResult<FilterBcgEcoCodesResponse>? filterResponse;

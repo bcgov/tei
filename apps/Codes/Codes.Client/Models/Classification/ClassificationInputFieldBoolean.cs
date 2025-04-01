@@ -3,6 +3,9 @@
 using System.Globalization;
 using TEI.Codes.Data.Models;
 
+/// <summary>
+/// Manages behaviour associated with a boolean dropdown input field.
+/// </summary>
 public class ClassificationInputFieldBoolean(
     ClassificationFieldType fieldType,
     Func<FilterBcgEcoCodesResponse?, IList<bool>> retrieveOptions,
